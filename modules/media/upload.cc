@@ -10,15 +10,7 @@
 
 #include "media.h"
 
-resource
-upload_resource__legacy
-{
-	"/_matrix/media/v1/upload/",
-	{
-		"(11.7.1.1) upload (legacy compat)",
-	}
-};
-
+/*
 resource
 upload_resource
 {
@@ -125,9 +117,4 @@ method_post
 {
 	upload_resource, "POST", post__upload, method_post_opts
 };
-
-static resource::method
-method_post__legacy
-{
-	upload_resource__legacy, "POST", post__upload, method_post_opts
-};
+*/

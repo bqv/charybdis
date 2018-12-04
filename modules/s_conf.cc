@@ -71,224 +71,18 @@ rehash_on_run{[]
 		};
 }};
 
-const m::room::id::buf
-conf_room_id
-{
-	"conf", ircd::my_host()
-};
-
-m::room
-conf_room
-{
-	conf_room_id
-};
-
-extern "C" m::event::id::buf
-set_conf_item(const m::user::id &sender,
-              const string_view &key,
-              const string_view &val)
-{
-	return send(conf_room, sender, "ircd.conf.item", key,
-	{
-		{ "value", val }
-	});
-}
-
 extern "C" void
 get_conf_item(const string_view &key,
               const std::function<void (const string_view &)> &closure)
 {
-	conf_room.get("ircd.conf.item", key, [&closure]
-	(const m::event &event)
-	{
-		const auto &value
-		{
-			unquote(at<"content"_>(event).at("value"))
-		};
 
-		closure(value);
-	});
 }
-
-static void
-conf_updated(const m::event &event)
-noexcept try
-{
-	const auto &content
-	{
-		at<"content"_>(event)
-	};
-
-	const auto &key
-	{
-		at<"state_key"_>(event)
-	};
-
-	const string_view &value
-	{
-		unquote(content.at("value"))
-	};
-
-	if(runlevel == runlevel::START && !conf::exists(key))
-		return;
-
-	log::debug
-	{
-		"Updating conf [%s] => %s", key, value
-	};
-
-	ircd::conf::set(key, value);
-}
-catch(const std::exception &e)
-{
-	if(item_error_log) log::error
-	{
-		"Failed to set conf item '%s' :%s",
-		json::get<"state_key"_>(event),
-		e.what()
-	};
-}
-
-static void
-handle_conf_updated(const m::event &event,
-                    m::vm::eval &)
-{
-	conf_updated(event);
-}
-
-const m::hookfn<m::vm::eval &>
-conf_updated_hook
-{
-	handle_conf_updated,
-	{
-		{ "_site",       "vm.effect"       },
-		{ "room_id",     "!conf"           },
-		{ "type",        "ircd.conf.item"  },
-	}
-};
-
-static void
-init_conf_items()
-{
-	const m::room::state state
-	{
-		conf_room
-	};
-
-	state.for_each("ircd.conf.item", []
-	(const m::event &event)
-	{
-		conf_updated(event);
-	});
-}
-
-static void
-init_conf_item(conf::item<> &item)
-{
-	const m::room::state state
-	{
-		conf_room
-	};
-
-	state.get(std::nothrow, "ircd.conf.item", item.name, []
-	(const m::event &event)
-	{
-		conf_updated(event);
-	});
-}
-
-static void
-handle_init_conf_items(const m::event &,
-                       m::vm::eval &eval)
-{
-	init_conf_items();
-}
-
-const m::hookfn<m::vm::eval &>
-init_conf_items_hook
-{
-	handle_init_conf_items,
-	{
-		{ "_site",       "vm.effect"      },
-		{ "room_id",     "!ircd"          },
-		{ "type",        "m.room.member"  },
-		{ "membership",  "join"           },
-		{ "state_key",   "@ircd"          },
-	}
-};
-
-static m::event::id::buf
-create_conf_item(const string_view &key,
-                 const conf::item<> &item)
-try
-{
-	thread_local char vbuf[4_KiB];
-	const string_view &val
-	{
-		item.get(vbuf)
-	};
-
-	return set_conf_item(m::me.user_id, key, val);
-}
-catch(const std::exception &e)
-{
-	if(item_error_log) log::error
-	{
-		"Failed to create conf item '%s' :%s",
-		key,
-		e.what()
-	};
-
-	return {};
-}
-
-static void
-create_conf_room(const m::event &,
-                 m::vm::eval &)
-{
-	m::create(conf_room_id, m::me.user_id);
-
-	for(const auto &p : conf::items)
-	{
-		const auto &key{p.first};
-		const auto &item{p.second}; assert(item);
-		create_conf_item(key, *item);
-	}
-}
-
-const m::hookfn<m::vm::eval &>
-create_conf_room_hook
-{
-	create_conf_room,
-	{
-		{ "_site",       "vm.effect"      },
-		{ "room_id",     "!ircd"          },
-		{ "type",        "m.room.create"  },
-	}
-};
 
 void
 rehash_conf(const string_view &prefix,
             const bool &existing)
 {
-	const m::room::state state
-	{
-		conf_room
-	};
 
-	for(const auto &p : conf::items)
-	{
-		const auto &key{p.first};
-		if(prefix && !startswith(key, prefix))
-			continue;
-
-		const auto &item{p.second}; assert(item);
-		if(!existing)
-			if(state.has("ircd.conf.item", key))
-				continue;
-
-		create_conf_item(key, *item);
-	}
 }
 
 void
@@ -313,7 +107,7 @@ default_conf(const string_view &prefix)
 void
 reload_conf()
 {
-	init_conf_items();
+
 }
 
 void

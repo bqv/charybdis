@@ -21,15 +21,7 @@ extern const db::description media_description;
 extern std::shared_ptr<db::database> media;
 extern db::column blocks;
 
-extern "C" m::room::id
-file_room_id(m::room::id::buf &out,
-             const string_view &server,
-             const string_view &file);
-
-m::room::id::buf
-file_room_id(const string_view &server,
-             const string_view &file);
-
+/*
 const_buffer
 block_get(const mutable_buffer &out,
           const string_view &b58hash);
@@ -76,3 +68,4 @@ download(const string_view &server,
          const string_view &mediaid,
          const m::user::id &user_id,
          const net::hostport &remote = {});
+*/

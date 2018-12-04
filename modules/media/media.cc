@@ -145,6 +145,7 @@ media;
 decltype(blocks)
 blocks;
 
+/*
 std::set<m::room::id>
 downloading;
 
@@ -514,3 +515,5 @@ file_room_id(m::room::id::buf &out,
 
 	return out;
 }
+
+*/

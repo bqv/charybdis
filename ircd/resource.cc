@@ -436,51 +436,51 @@ try
 }
 catch(const json::print_error &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::INTERNAL_SERVER_ERROR, "M_NOT_JSON", "Generator Protection: %s", e.what()
+		http::INTERNAL_SERVER_ERROR, "Generator Protection: %s", e.what()
 	};
 }
 catch(const json::not_found &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::BAD_REQUEST, "M_BAD_JSON", "Required JSON field: %s", e.what()
+		http::BAD_REQUEST, "Required JSON field: %s", e.what()
 	};
 }
 catch(const json::error &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::BAD_REQUEST, "M_NOT_JSON", "%s", e.what()
+		http::BAD_REQUEST, "%s", e.what()
 	};
 }
 catch(const ctx::timeout &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::BAD_GATEWAY, "M_REQUEST_TIMEOUT", "%s", e.what()
+		http::BAD_GATEWAY, "%s", e.what()
 	};
 }
 catch(const mods::unavailable &e)
 {
-	throw m::UNAVAILABLE
+	throw http::error
 	{
-		"%s", e.what()
+		http::SERVICE_UNAVAILABLE, "%s", e.what()
 	};
 }
 catch(const std::bad_function_call &e)
 {
-	throw m::UNAVAILABLE
+	throw http::error
 	{
-		"%s", e.what()
+		http::SERVICE_UNAVAILABLE, "%s", e.what()
 	};
 }
 catch(const std::out_of_range &e)
 {
-	throw m::NOT_FOUND
+	throw http::error
 	{
-		"%s", e.what()
+		http::NOT_FOUND, "%s", e.what()
 	};
 }
 
@@ -541,42 +541,15 @@ const
 	};
 
 	if(!request.access_token && requires_auth)
-		throw m::error
+		throw http::error
 		{
-			http::UNAUTHORIZED, "M_MISSING_TOKEN",
-			"Credentials for this method are required but missing."
+			http::UNAUTHORIZED, "Credentials for this method are required but missing."
 		};
 
 	if(!request.access_token)
 		return {};
 
-	static const m::event::fetch::opts fopts
-	{
-		m::event::keys::include
-		{
-			"sender"
-		}
-	};
-
-	const m::room::state tokens{m::user::tokens, &fopts};
-	tokens.get(std::nothrow, "ircd.access_token", request.access_token, [&request]
-	(const m::event &event)
-	{
-		// The user sent this access token to the tokens room
-		request.user_id = m::user::id
-		{
-			at<"sender"_>(event)
-		};
-	});
-
-	if(!request.user_id && requires_auth)
-		throw m::error
-		{
-			http::UNAUTHORIZED, "M_UNKNOWN_TOKEN",
-			"Credentials for this method are required but invalid."
-		};
-
-	return request.user_id;
+	return {};
 }
 
 ircd::string_view
@@ -603,34 +576,14 @@ const try
 		return {};
 
 	if(!supplied && required)
-		throw m::error
+		throw http::error
 		{
-			http::UNAUTHORIZED, "M_MISSING_AUTHORIZATION",
-			"Required X-Matrix Authorization was not supplied"
+			http::UNAUTHORIZED, "Required X-Matrix Authorization was not supplied"
 		};
 
-	const m::request::x_matrix x_matrix
-	{
-		request.head.authorization
-	};
-
-	const m::request object
-	{
-		x_matrix.origin, my_host(), name, request.head.uri, request.content
-	};
-
-	if(!object.verify(x_matrix.key, x_matrix.sig))
-		throw m::error
-		{
-			http::FORBIDDEN, "M_INVALID_SIGNATURE",
-			"The X-Matrix Authorization is invalid."
-		};
-
-	request.node_id = {m::node::id::origin, x_matrix.origin};
-	request.origin = x_matrix.origin;
-	return request.origin;
+	return {};
 }
-catch(const m::error &)
+catch(const http::error &)
 {
 	throw;
 }
@@ -643,10 +596,9 @@ catch(const std::exception &e)
 		e.what()
 	};
 
-	throw m::error
+	throw http::error
 	{
-		http::UNAUTHORIZED, "M_UNKNOWN_ERROR",
-		"An error has prevented authorization: %s",
+		http::UNAUTHORIZED, "An error has prevented authorization: %s",
 		e.what()
 	};
 }
@@ -900,17 +852,17 @@ try
 			return;
 		}
 
-		default: throw m::error
+		default: throw http::error
 		{
-			http::INTERNAL_SERVER_ERROR, "M_NOT_JSON", "Cannot send json::%s as response content", type(value)
+			http::INTERNAL_SERVER_ERROR, "Cannot send json::%s as response content", type(value)
 		};
 	}
 }
 catch(const json::error &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::INTERNAL_SERVER_ERROR, "M_NOT_JSON", "Generator Protection: %s", e.what()
+		http::INTERNAL_SERVER_ERROR, "Generator Protection: %s", e.what()
 	};
 }
 
@@ -938,9 +890,9 @@ try
 }
 catch(const json::error &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::INTERNAL_SERVER_ERROR, "M_NOT_JSON", "Generator Protection: %s", e.what()
+		http::INTERNAL_SERVER_ERROR, "Generator Protection: %s", e.what()
 	};
 }
 
@@ -968,9 +920,9 @@ try
 }
 catch(const json::error &e)
 {
-	throw m::error
+	throw http::error
 	{
-		http::INTERNAL_SERVER_ERROR, "M_NOT_JSON", "Generator Protection: %s", e.what()
+		http::INTERNAL_SERVER_ERROR, "Generator Protection: %s", e.what()
 	};
 }
 

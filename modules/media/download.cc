@@ -10,22 +10,13 @@
 
 #include "media.h"
 
+/*
 resource
 download_resource
 {
 	"/_matrix/media/r0/download/",
 	{
 		"(11.7.1.2) download",
-		resource::DIRECTORY,
-	}
-};
-
-resource
-download_resource__legacy
-{
-	"/_matrix/media/v1/download/",
-	{
-		"(11.7.1.2) download (legacy)",
 		resource::DIRECTORY,
 	}
 };
@@ -145,9 +136,4 @@ method_get
 {
 	download_resource, "GET", get__download
 };
-
-static resource::method
-method_get__legacy
-{
-	download_resource__legacy, "GET", get__download
-};
+*/

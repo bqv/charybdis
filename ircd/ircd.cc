@@ -203,16 +203,10 @@ noexcept try
 	server::init _server_;   // Server related
 	client::init _client_;   // Client related
 	js::init _js_;           // SpiderMonkey
-	m::init _matrix_         // Matrix
-	{
-		string_view{_origin},
-		string_view{_hostname}
-	};
 
 	// Any deinits which have to be done with all subsystems intact
 	const unwind shutdown{[&]
 	{
-		_matrix_.close();
 		server::interrupt_all();
 		client::terminate_all();
 		client::close_all();
@@ -236,11 +230,11 @@ noexcept try
 	// executes backwards from this point and shuts down IRCd.
 	ctx::wait();
 }
-catch(const m::error &e)
+catch(const std::exception &e)
 {
 	log::critical
 	{
-		"IRCd main exited :%s %s", e.what(), e.content
+		"IRCd main exited :%s", e.what()
 	};
 }
 catch(...)

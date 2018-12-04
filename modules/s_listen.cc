@@ -14,7 +14,6 @@ extern "C" std::list<net::listener> listeners;
 
 extern "C" bool loaded_listener(const string_view &name);
 static bool load_listener(const string_view &, const json::object &);
-static bool load_listener(const m::event &);
 extern "C" bool unload_listener(const string_view &name);
 extern "C" bool load_listener(const string_view &name);
 static void init_listeners();
@@ -61,6 +60,7 @@ on_unload()
 void
 init_listeners()
 {
+/*
 	m::room::state{m::my_room}.for_each("ircd.listen", []
 	(const m::event &event)
 	{
@@ -72,6 +72,7 @@ init_listeners()
 		{
 			"No listening sockets configured; can't hear anyone."
 		};
+*/
 }
 
 //
@@ -79,52 +80,16 @@ init_listeners()
 // to room state in its content, we instantiate the listener here.
 //
 
-static void
-create_listener(const m::event &event,
-                m::vm::eval &)
-{
-	load_listener(event);
-}
-
-/// Hook for a new listener description being sent.
-const m::hookfn<m::vm::eval &>
-create_listener_hook
-{
-	create_listener,
-	{
-		{ "_site",       "vm.effect"    },
-		{ "room_id",     "!ircd"        },
-		{ "type",        "ircd.listen"  },
-	}
-};
-
 //
 // Common
 //
 
 bool
 load_listener(const string_view &name)
-try
 {
 	bool ret{false};
-	const m::room::state state{m::my_room};
-	state.get("ircd.listen", name, [&ret]
-	(const m::event &event)
-	{
-		ret = load_listener(event);
-	});
 
 	return ret;
-}
-catch(const m::NOT_FOUND &e)
-{
-	log::error
-	{
-		"Failed to find any listener configuration for '%s'",
-		name
-	};
-
-	return false;
 }
 
 bool
@@ -140,22 +105,6 @@ unload_listener(const string_view &name)
 	});
 
 	return true;
-}
-
-bool
-load_listener(const m::event &event)
-{
-	const string_view &name
-	{
-		at<"state_key"_>(event)
-	};
-
-	const json::object &opts
-	{
-		json::get<"content"_>(event)
-	};
-
-	return load_listener(name, opts);
 }
 
 static bool

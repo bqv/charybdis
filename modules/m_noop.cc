@@ -10,7 +10,8 @@
 
 using namespace ircd;
 
-mapi::header IRCD_MODULE
+mapi::header
+IRCD_MODULE
 {
-	"Matrix virtual Machine - No Operation"
+	"Message - No Operation"
 };
