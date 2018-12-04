@@ -74,6 +74,7 @@ namespace ircd
 #include "server/server.h"
 #include "resource.h"
 #include "client.h"
+#include "ap/ap.h"
 
 /// \brief Internet Relay Chat daemon. This is the principal namespace for IRCd.
 ///

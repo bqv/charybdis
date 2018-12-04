@@ -124,6 +124,7 @@ libircd_la_SOURCES =   \
 	server.cc          \
 	client.cc          \
 	resource.cc        \
+	ap.cc              \
 	ircd.cc            \
 	###
 
