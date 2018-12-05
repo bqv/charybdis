@@ -3323,13 +3323,13 @@ ircd::net::ipport::ipport(const uint128_t &ip,
 decltype(ircd::net::canon_port)
 ircd::net::canon_port
 {
-	8448
+	443
 };
 
 decltype(ircd::net::canon_service)
 ircd::net::canon_service
 {
-	"matrix"
+	"https"
 };
 
 std::ostream &
