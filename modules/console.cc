@@ -306,6 +306,93 @@ console_cmd__help(opt &out, const string_view &line)
 bool
 console_cmd__test(opt &out, const string_view &line)
 {
+	const net::hostport remote
+	{
+		"pleroma.soykaf.com", "", 443
+	};
+
+	const unique_buffer<mutable_buffer> buf
+	{
+		1_MiB
+	};
+
+	window_buffer wb(buf);
+	http::request
+	{
+		wb, host(remote), "GET", "/api/v1/statuses/21839901/reblogged_by", 2, "application/json; charset=utf-8",
+		{
+			{ "Accept", "application/json" },
+			{ "Accept-Charset: utf-8" },
+		}
+	};
+
+	const const_buffer out_head{wb.completed()};
+	const string_view out_body{"{}"};
+	std::cout << string_view{out_head} << std::endl;
+	const mutable_buffer in_buf{wb};
+	zero(in_buf);
+
+	server::request::opts opts;
+	opts.http_exceptions = false;
+	server::request request
+	{
+		remote,
+		{ out_head, out_body },
+		{ in_buf },
+		&opts
+	};
+
+	request.wait(seconds(10));
+
+	const auto code
+	{
+		request.get()
+	};
+
+	if(code != http::OK)
+	{
+		out << string_view{request.in.content} << std::endl;
+		return true;
+	}
+
+	if(json::type(string_view(request.in.content)) == json::OBJECT)
+	{
+		for(const auto &kv : json::object(request.in.content))
+			out << kv.first << ": " << kv.second << std::endl;
+
+		return true;
+	}
+
+	const json::array array
+	{
+		request.in.content
+	};
+
+	for(const json::object &elem : array)
+	{
+		for(const auto &keyval : elem)
+		{
+			out << keyval.first << ": ";
+			switch(json::type(keyval.second))
+			{
+				case json::OBJECT:
+				{
+					out << std::endl;
+					for(const auto &kv : json::object(keyval.second))
+						out << "    " << kv.first << ": " << kv.second << std::endl;
+
+					break;
+				}
+
+				default:
+				 	out << keyval.second << std::endl;
+				 	break;
+			}
+		}
+
+		out << std::endl;
+	}
+
 	return true;
 }
 
