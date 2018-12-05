@@ -35,6 +35,10 @@ ircd::net::wait_close_sockets()
 
 /// Network subsystem initialization
 ircd::net::init::init()
+:s_dns
+{
+	"s_dns"
+}
 {
 	sslv23_client.set_verify_mode(asio::ssl::verify_peer);
 	sslv23_client.set_default_verify_paths();

@@ -69,6 +69,8 @@ namespace ircd
 
 struct ircd::net::init
 {
+	module s_dns;
+
 	init();
 	~init() noexcept;
 };
